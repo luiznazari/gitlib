@@ -26,7 +26,6 @@ GL_REFS_REGEX="refs[[:space:]]+#[[:digit:]]*[^[:alpha:]]"
 # - Commands
 # --------------------
 
-# Utiliza o nome da branch como padrão, quando recebe apenas uma mensagem
 gcommit() {
 	branch=$(_get_curr_branch);
 	args=${@##-*}
@@ -165,10 +164,15 @@ _do_commit() {
 
 _commit_refs() {
 	if [[ $1 == *b_task_* ]]; then
-		expr "refs #${1#*b_task_} [$2]"
+        task="${1#*b_task_}"
+		commitRefs="${GL_REFS_STRING/\#[[:digit:]]*/#$task/}"
+        
 	elif [[ $1 == *b_* ]]; then
-		expr "${1#*b_} [$2]"
+		commitRefs="${1#*b_}"
+        
 	else
-		expr "$1 [$2]"
+		commitRefs="$1"
 	fi
+    
+    expr "$commitRefs [$2]"
 }

@@ -28,7 +28,7 @@
 
 GL_SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$GL_SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-  GL_SOURCE="$(readlink "$GL_SOURCE")"
+    GL_SOURCE="$(readlink "$GL_SOURCE")"
 done
 GL_SOURCE_DIR="$( dirname "$GL_SOURCE" )/src"
 

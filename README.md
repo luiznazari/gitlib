@@ -12,7 +12,7 @@ GitLib is meant for anyone that uses Git from the terminal, making the daily wor
 1. Check out a clone of this repository to a location of your choice;
 2. Include the installation file within your ~/.bash_profile or ~/.bashrc file:
 
-   `source <path_to_gitlib>/install.sh`
+   `source <path_to_gitlib>/setup.sh`
 
 3. You can also add configuration commands, such as:
 
@@ -82,7 +82,7 @@ Prepare the content staged for the next commit and then commit changes. While ex
 **IMPORTANT**: The commit message passed as argument is customized based on the **current branch name**. If the branch name match the pattern:
 * name: The message will be formatted as: "name [message]"
 * b_name: The message will be formatted as: "name [message]"
-* b_task_1234: The message will be formatted as: "refs #1234 [message]"
+* b_task_1234: The message will be formatted using the task-reference string: "refs #1234 [message]"
 
 That way, all the commits are standardized and offers more agility by automatically customizing the message.
 
@@ -106,7 +106,7 @@ Examples:
 
 Options:
 * -b: Create and checkout a new branch
-  * ~~In truth, it will accept any of `git branch` standard options.~~
+  * ~~Actually, it will accept any of `git branch` standard options.~~
 
 Arguments:
 * \<branch_name\>: The branch which will be switched to.
