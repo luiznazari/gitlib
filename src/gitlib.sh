@@ -33,7 +33,9 @@ gcommit() {
 	if [ -z "$branch" ]; then
         _log err "Current directory is not a git repository"
     	return "1"
-		
+
+    
+    
     elif [ -z "$args" ]; then
         _log err "Please, insert a message to confirm the commit"
 		return "1"
@@ -65,10 +67,22 @@ gpull() {
 		branch=$(_get_curr_branch)
 	fi
 	
-	_log debug "Pulling from branch $branch"
-	_log debug "git pull origin $branch"
-	
-	git pull origin "$branch"
+    if [ $branch == "." ]; then
+        _log debug "Pulling from origin"
+        _log debug "git pull origin"
+
+		if [ "$GL_DEBUG_MODE_ENABLED" = false ]; then
+        	git pull origin
+		fi
+        
+    else
+        _log debug "Pulling from branch $branch"
+        _log debug "git pull origin $branch"
+
+		if [ "$GL_DEBUG_MODE_ENABLED" = false ]; then
+        	git pull origin "$branch"
+		fi
+    fi
 }
 
 gpush() {
@@ -81,7 +95,9 @@ gpush() {
 	_log debug "Pushing to branch $branch"
 	_log debug "git push origin $branch"
 	
-	git push origin "$branch"
+	if [ "$GL_DEBUG_MODE_ENABLED" = false ]; then
+		git push origin "$branch"
+	fi
 }
 
 gout() {
@@ -108,11 +124,15 @@ gmerge() {
 		
 	elif [[ $# -gt 0 && -n $1 ]]; then
 		_log info "Step 1: Pulling from current branch..."
-		gpull
+		if [ "$GL_DEBUG_MODE_ENABLED" = false ]; then
+			gpull
+		fi
 		
 		_log info "Step 2: Merging $1 -> $branch"
 		_log debug "git merge $1"
-		git merge "$1"
+		if [ "$GL_DEBUG_MODE_ENABLED" = false ]; then
+			git merge "$1"
+		fi
 		
 	else
 		_log err "Branch name not specified"
@@ -121,7 +141,9 @@ gmerge() {
 
 gstatus() {
     _log debug "git status"
-	git status
+	if [ "$GL_DEBUG_MODE_ENABLED" = false ]; then
+		git status
+	fi
 }
 
 # - Functions
@@ -155,8 +177,10 @@ _do_commit() {
 	_log debug "git add ."
 	_log debug "git commit -m \"$comentario\""
 	
-	git add .
-	git commit -m "$comentario"
+	if [ "$GL_DEBUG_MODE_ENABLED" = false ]; then
+		git add .
+		git commit -m "$comentario"
+	fi
 	
 	#Returns the exit status of "git commit"
 	return "$?"
@@ -165,7 +189,7 @@ _do_commit() {
 _commit_refs() {
 	if [[ $1 == *b_task_* ]]; then
         task="${1#*b_task_}"
-		commitRefs="${GL_REFS_STRING/\#[[:digit:]]*/#$task/}"
+		commitRefs="${GL_REFS_STRING/\#[[:digit:]]*/#$task}"
         
 	elif [[ $1 == *b_* ]]; then
 		commitRefs="${1#*b_}"

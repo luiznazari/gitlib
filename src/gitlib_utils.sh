@@ -58,6 +58,12 @@ gconfig() {
                 *) _log err "Log level must be: error, warn, info or debug."
             esac
             ;;
+
+        debug-mode )
+            if [[ "$2" = false ]] || [[ "$2" = true ]]; then
+                GL_DEBUG_MODE_ENABLED=$2
+            fi
+            ;;
             
 		*) _log err "Configuration \"$1\" not found" ;;
 	esac
@@ -65,11 +71,6 @@ gconfig() {
 
 # - Functions
 # --------------------
-
-# Returns the current branch name. e.g.: master
-_get_curr_branch() {
-	git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
-}
 
 _log() {
 	
@@ -85,3 +86,25 @@ _log() {
         echo -e "[$str] $logColor$@$GL_NO_COLOR"
     fi
 }
+
+_getopts() {
+    echo "$@" | sed -E 's/(^|[[:space:]])[[:alpha:]]+//g'
+}
+
+
+# Returns the current branch name. e.g.: master
+_get_curr_branch() {
+	git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
+}
+
+_hasUnpushedCommitsFor() {
+    [[ -n "$(git diff origin/HEAD..$1)" ]] && return 0 || return 1
+}
+
+_hasUnpushedCommits() {
+    branch="$(_get_curr_branch)"
+    return $(_hasUnpushedCommitsFor $branch)
+}
+
+# defazer commit local
+# git reset --soft head~1; git reset .;git checkout . 

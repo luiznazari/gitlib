@@ -26,6 +26,7 @@
 # - Sources
 # --------------------
 
+GL_DEBUG_MODE_ENABLED=false
 GL_SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$GL_SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
     GL_SOURCE="$(readlink "$GL_SOURCE")"
@@ -33,11 +34,11 @@ done
 GL_SOURCE_DIR="$( dirname "$GL_SOURCE" )/src"
 
 if [ -d "$GL_SOURCE_DIR" ]; then
-	source $GL_SOURCE_DIR/gitlib-utils.sh
+	source $GL_SOURCE_DIR/gitlib_utils.sh
 	source $GL_SOURCE_DIR/gitlib.sh
-	source $GL_SOURCE_DIR/gitlib-help.sh
+	source $GL_SOURCE_DIR/gitlib_help.sh
 else
-	echo "[ERROR] GitLib could not be loaded: Unable to locate source directory: \"$GL_SOURCE_DIR\""
+	echo "[ERROR] GitLib could not be loaded. Unable to locate source directory: \"$GL_SOURCE_DIR\""
 fi
 
 # Further configurations are not necessary
