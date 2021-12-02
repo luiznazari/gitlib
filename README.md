@@ -33,8 +33,6 @@ Further configurations are not necessary.
 
 Prepare the unstaged and new files for the next commit and then commit changes.<br>
 
-When you do a `gcommit`, you'll be prompted to choose the prefix specifying the referred commit. The available options are: `FIX`, `FEAT`, `TEST`, `REFACTOR`, `DOC`, `REVERT`.
-
 If the branch name contains a task number, it'll be used in the commit message, otherwise, a task number need to be prompted to confirm the action. The possible answers are:
 * `y` or `s`: Assumes `0` as the task number;
 * `n`: Aborts the commit;
@@ -44,40 +42,34 @@ If the branch name contains a task number, it'll be used in the commit message, 
 * b_task_1234: The message will be formatted using the task number 1234.
 * b_PREFIX_1234: The message will be formatted using the task prefix PREFIX and task number 1234.
 
-IF the commit prefix is `REVERT`, instead of asking for the task number, you'll be prompted to speficy the ID of the target commit (SHA1 hash).
-
 #### Examples:
 Current branch: **master**
 > \> `gcommit -p "Added the save button click event"` <br>
-> \> Answer 1: FEAT <br>
-> \> Answer 2: 123, 456 <br>
+> \> Answer 1: 123, 456 <br>
 > \# Will result in the following commands: <br>
 > \> `git add .` <br>
-> \> `git commit -m "[FEAT][#PREFIX-123, #PREFIX-456]: Added the save button click event"` <br>
+> \> `git commit -m "[#PREFIX-123, #PREFIX-456]: Added the save button click event"` <br>
 > \> `git push origin master` <br>
 
 Current branch: **master**
 > \> `gcommit -s "Added tests to the save button click event"` <br>
-> \> Answer 1: TEST <br>
-> \> Answer 2: 123 <br>
+> \> Answer 1: 123 <br>
 > \# Will result in the following commands: <br>
-> \> `git commit -m "[TEST][#PREFIX-123]: Added tests to the save button click event event"` <br>
+> \> `git commit -m "[#PREFIX-123]: Added tests to the save button click event event"` <br>
 
 Current branch: **b_task_1234**
 > \> `gcommit "Added the save button click event"` <br>
-> \> Answer 1: FIX <br>
 > \# Will not ask the task number <br>
 > \# Will result in the following commands: <br>
 > \> `git add .` <br>
-> \> `git commit -m "[FIX][#PREFIX-1234]: Fixed the save button click event"`
+> \> `git commit -m "[#PREFIX-1234]: Fixed the save button click event"`
 
 Current branch: **b_CUSTOMPREFIX_1234**
 > \> `gcommit "Added the save button click event"` <br>
-> \> Answer 1: FEAT <br>
 > \# Will not ask the task number <br>
 > \# Will result in the following commands: <br>
 > \> `git add .` <br>
-> \> `git commit -m "[FEAT][#CUSTOMPREFIX-1234]: Added the save button click event"`
+> \> `git commit -m "[#CUSTOMPREFIX-1234]: Added the save button click event"`
 
 ----
 
@@ -201,17 +193,6 @@ Discards all stagged and unstagged changes and local (unpushed) commits. Only us
 
 There are some options that can be configured. All the configurations can be changed using the `gconfig` command while passing the configuration name as arguments. The following items are the currently available options:
 
-### `gconfig default-task-prefix <new_prefix>`
-
-#### Arguments:
-* `<new_prefix>`: The prefix used before the task number
-
-#### Description:
-
-Changes the actual task-reference prefix that is used within the `gcommit` command. It's used to compose the Jira task ID.
-
-----
-
 ### `gconfig loglevel <new_log_level>`
 
 #### Arguments:
@@ -242,6 +223,8 @@ When debug mode is `true`, all commands *will not* cause changes to the git proj
 #### Defaults:
 
 False.
+
+<br>
 
 ----
 
