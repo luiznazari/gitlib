@@ -36,6 +36,10 @@ gcommit() {
         _log err "Current directory is not a git repository"
     	return "1"
 
+	elif ! _check_if_path_is_repository_root_and_confirm "some files may not be commited"; then
+		_log warn "Commit aborted"
+		return "1"
+
     else
 		auto_push=false
 		stagged_only=false

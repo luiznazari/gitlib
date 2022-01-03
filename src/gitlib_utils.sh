@@ -63,6 +63,31 @@ _hasUnpushedCommits() {
 }
 
 # args:
+# 	$1 - [Optional] the text complement for the confirm question
+_check_if_path_is_repository_root_and_confirm() {
+	if _check_if_path_is_repository_root; then
+		messageComplement="$1"
+		if [ -n "$1" ]; then
+			messageComplement=", $1"
+		fi
+		if _yes_no "You are not on repository root directory$messageComplement. Confirm operation?"; then
+			return 0
+		else 
+			return 1
+		fi
+	fi
+}
+
+_check_if_path_is_repository_root() {
+	repositoryRootDir="$(git rev-parse --show-toplevel)"
+
+	# Fix for GitForWindows compatibility, transforms "C:/path/repo" into "/c/path/repo"
+	repositoryRootDir="$(echo "$repositoryRootDir" | sed  -E "s/^([A-Z]):\//\/\L\1\//")"
+
+	[[  "$repositoryRootDir" != "$PWD" ]] && return 0 || return 1
+}
+
+# args:
 # 	$1 - the text to be trimmed
 _trim() {
     local text="$*"
@@ -77,21 +102,20 @@ _trim() {
 #	[...]
 # fi
 _yes_no() {
-	continue_msg="(y/n)"
     # input_message="Deseja Prosseguir? (y/n)`echo $'\n> '`"
     # read -p "Mensagem. $input_message" input
     retval=0
     
-	echo "$1 $continue_msg"
+	echo "$1 (y/n)"
     while true; do
-        read -p "> " -n 1 response
+        read -p "> " response
         case $response in
-            [SsYy]* ) retval=0; break;;
-            [Nn]* ) retval=1; break;;
+            [SsYy] ) retval=0; break;;
+            [Nn] ) retval=1; break;;
             *) echo ""
         esac
 
-		echo $continue_msg
+		echo "Confirm? (y/n)"
     done
     
     echo "" # quebra de linha para próximos comandos
