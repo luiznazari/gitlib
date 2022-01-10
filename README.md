@@ -43,33 +43,41 @@ If the branch name contains a task number, it'll be used in the commit message, 
 * b_PREFIX_1234: The message will be formatted using the task prefix PREFIX and task number 1234.
 
 #### Examples:
-Current branch: **master**
-> \> `gcommit -p "Added the save button click event"` <br>
-> \> Answer 1: 123, 456 <br>
-> \# Will result in the following commands: <br>
-> \> `git add .` <br>
-> \> `git commit -m "[#PREFIX-123, #PREFIX-456]: Added the save button click event"` <br>
-> \> `git push origin master` <br>
+```bash
+# Current branch: master
+> gcommit -p "Added the save button click event"
+# Answer 1: 123, 456
+# Will result in the following commands:
+# git add .
+# git commit -m "[#PREFIX-123, #PREFIX-456]: Added the save button click event"
+# git push origin master
+```
 
-Current branch: **master**
-> \> `gcommit -s "Added tests to the save button click event"` <br>
-> \> Answer 1: 123 <br>
-> \# Will result in the following commands: <br>
-> \> `git commit -m "[#PREFIX-123]: Added tests to the save button click event event"` <br>
+```bash
+# Current branch: master
+> gcommit -s "Added tests to the save button click event"
+# Answer 1: 123
+# Will result in the following commands:
+# git commit -m "[#PREFIX-123]: Added tests to the save button click event event"
+```
 
-Current branch: **b_task_1234**
-> \> `gcommit "Added the save button click event"` <br>
-> \# Will not ask the task number <br>
-> \# Will result in the following commands: <br>
-> \> `git add .` <br>
-> \> `git commit -m "[#PREFIX-1234]: Fixed the save button click event"`
+```bash
+# Current branch: b_task_1234
+> gcommit "Added the save button click event"
+# Will not ask the task number
+# Will result in the following commands:
+# git add .
+# git commit -m "[#PREFIX-1234]: Fixed the save button click event"
+```
 
-Current branch: **b_CUSTOMPREFIX_1234**
-> \> `gcommit "Added the save button click event"` <br>
-> \# Will not ask the task number <br>
-> \# Will result in the following commands: <br>
-> \> `git add .` <br>
-> \> `git commit -m "[#CUSTOMPREFIX-1234]: Added the save button click event"`
+```bash
+# Current branch: b_CUSTOMPREFIX_1234
+> gcommit "Added the save button click event"
+# Will not ask the task number
+# Will result in the following commands:
+# git add .
+# git commit -m "[#CUSTOMPREFIX-1234]: Added the save button click event"
+```
 
 ----
 
@@ -83,15 +91,16 @@ Current branch: **b_CUSTOMPREFIX_1234**
 Incorporates remote changes into the current branch.
 
 #### Examples:
-Current branch: **master**
+```bash
+# Current branch: master
+> gpull
+# Will result in the following commands:
+# git pull origin master
 
-> \> `gpull` <br>
-> \# Will result in the following commands: <br>
-> \> `git pull origin master` 
-
-> \> `gpull other_branch` <br>
-> \# Will result in the following commands: <br>
-> \> `git pull origin other_branch`
+> gpull other_branch
+# Will result in the following commands:
+# git pull origin other_branch
+```
 
 ----
 
@@ -105,15 +114,17 @@ Current branch: **master**
 Updates remote branch sending local commits.
 
 #### Examples:
-Current branch: **master**
 
-> \> `gpush` <br>
-> \# Will result in the following commands: <br>
-> \> `git gush origin master`
+```bash
+# Current branch: master
+> gpush
+# Will result in the following commands:
+# git gush origin master
 
-> \> `gpush other_branch` <br>
-> \# Will result in the following commands: <br>
-> \> `git gush origin other_branch`
+> gpush other_branch
+# Will result in the following commands:
+# git gush origin other_branch
+```
 
 ----
 
@@ -131,11 +142,13 @@ Current branch: **master**
 Prepare the local project for working on a specifc branch, switching the actual branch for the new one.
 
 #### Examples:
-Current branch: **master**
 
-> \> `gout -b b_task_1234` <br>
-> \# Will result in the following commands: <br>
-> \> `git checkout -b b_task_1234`
+```bash
+# Current branch: master
+> gout -b b_task_1234
+# Will result in the following commands:
+# git checkout -b b_task_1234
+```
 
 ----
 
@@ -151,11 +164,13 @@ Incorporates changes from the named commits of the specified branch into the cur
 **IMPORTANT**: Before merging, the `gpull` command will be executed. It will not cause any harmful effect, if there is any remote commit not yet fetched into the local repository, the `git merge` will fail and you will need to execute `git pull` anyway.
 
 #### Examples:
-Current branch: **master**
-> \> `gmerge b_task_1234`
-> \# Will result in the following commands:
-> \> `gpull`
-> \> `git merge b_task_1234`
+```bash
+# Current branch: master
+> gmerge b_task_1234
+# Will result in the following commands:
+# gpull
+# git merge b_task_1234
+```
 
 ----
 
@@ -166,10 +181,12 @@ Current branch: **master**
 Displays paths that have differences between the index file and the current HEAD commit. Simplifying: it is just a contraction of `git stauts` command, the standard options and arguments will work.
 
 #### Examples:
-Current branch: **master**
-> \> `gstatus`
-> \# Will result in the following commands:
-> \> `git status`
+```bash
+# Current branch: master
+> gstatus
+# Will result in the following commands:
+# git status
+```
 
 ----
 
@@ -181,11 +198,13 @@ Discards all stagged and unstagged changes and local (unpushed) commits. Only us
 
 #### Examples:
 
-> \> `greset` <br>
-> \# Will result in the following commands: <br>
-> \> `git checkout .` <br>
-> \> `git reset .` <br>
-> \> `git reset --soft HEAD`
+```bash
+> greset
+# Will result in the following commands:
+# git checkout .
+# git reset .
+# git reset --soft HEAD
+```
 
 <br>
 

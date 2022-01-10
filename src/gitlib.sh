@@ -5,11 +5,10 @@
 # - GITLIB
 # - Library of utility functions and standardizing for daily/commonly used
 # - GIT commands
-# - Version: 1.1-SENIOR
+# - Version: 1.2
 # - 
 # - Author: Luiz Felipe Nazari
 # -         luiz.nazari.42@gmail.com
-# -         luiz.nazari@senior.com.br
 # - All rights reserved.
 # - 
 # --------------------------------------------------------------------------------
@@ -79,20 +78,40 @@ gcommit() {
 gpull() {
 	branch_to_pull=""
 
+	branch_prefix=""
+	should_choose_branch=false
 	let "OPTIND = 1";
-	while getopts "lo" opcao
+	while getopts "lfrho" opcao
 	do
 		case "$opcao" in
 			"l")
-				if ! _choose_branch branch_to_pull ; then
-					return $?
+				should_choose_branch=true
+				# Optional option argument (without ':' in getopts)
+				if [[ ${@:$OPTIND} =~ ^[[:alpha:]]+$ ]]; then
+					branch_prefix=${@:$OPTIND}
+					OPTIND=$((OPTIND+1))
 				fi
+				;;
+			"f")
+				branch_prefix="feature/"
+				;;
+			"r")
+				branch_prefix="release/"
+				;;
+			"h")
+				branch_prefix="hotfix/"
 				;;
 			"o")
 				branch_to_pull="." # origin
 				;;
 		esac
 	done
+
+	if [ "$should_choose_branch" = true ]; then
+		if ! _choose_branch branch_to_pull "$branch_prefix"; then
+			return $?
+		fi
+	fi
 
 	if [ -z "$branch_to_pull" ]; then
 		if [ $# -eq 1 ]; then
@@ -122,17 +141,37 @@ gpull() {
 gpush() {
 	branch_to_push=""
 
+	branch_prefix=""
+	should_choose_branch=false
 	let "OPTIND = 1";
-	while getopts "l" opcao
+	while getopts "lfrh" opcao
 	do
 		case "$opcao" in
 			"l")
-				if ! _choose_branch branch_to_push ; then
-					return $?
+				should_choose_branch=true
+				# Optional option argument (without ':' in getopts)
+				if [[ ${@:$OPTIND} =~ ^[[:alpha:]]+$ ]]; then
+					branch_prefix=${@:$OPTIND}
+					OPTIND=$((OPTIND+1))
 				fi
+				;;
+			"f")
+				branch_prefix="feature/"
+				;;
+			"r")
+				branch_prefix="release/"
+				;;
+			"h")
+				branch_prefix="hotfix/"
 				;;
 		esac
 	done
+
+	if [ "$should_choose_branch" = true ]; then
+		if ! _choose_branch branch_to_push "$branch_prefix"; then
+			return $?
+		fi
+	fi
 
 	if [ -z "$branch_to_push" ]; then
 		if [ $# -eq 1 ]; then
@@ -153,32 +192,42 @@ gpush() {
 # -l: choose branch to checkout
 gout() {
 	branch_to_checkout=""
-	branch_to_checkout_prefix=""
+	branch_prefix=""
 	new_branch=false
+	should_choose_branch=false
 
 	let "OPTIND = 1";
-	while getopts "lbfrh" opcao
+	while getopts "lfrhb" opcao
 	do
 		case "$opcao" in
-			"l") 
-				if ! _choose_branch branch_to_checkout ; then
-					return $?
+			"l")
+				should_choose_branch=true
+				# Optional option argument (without ':' in getopts)
+				if [[ ${@:$OPTIND} =~ ^[[:alpha:]]+$ ]]; then
+					branch_prefix=${@:$OPTIND}
+					OPTIND=$((OPTIND+1))
 				fi
 				;;
-			"b") 
-				new_branch=true
-				;;
 			"f")
-				branch_to_checkout_prefix="feature/"
+				branch_prefix="feature/"
 				;;
 			"r")
-				branch_to_checkout_prefix="release/"
+				branch_prefix="release/"
 				;;
 			"h")
-				branch_to_checkout_prefix="hotfix/"
+				branch_prefix="hotfix/"
+				;;
+			"b")
+				new_branch=true
 				;;
 		esac
 	done
+
+	if [ "$should_choose_branch" = true ]; then
+		if ! _choose_branch branch_to_checkout "$branch_prefix"; then
+			return $?
+		fi
+	fi
 
 	if [ -z "$branch_to_checkout" ]; then
 		if [ -z "$1" ]; then
@@ -189,7 +238,7 @@ gout() {
 		fi
 	fi
 
-	branch_to_checkout="$branch_to_checkout_prefix$branch_to_checkout"
+	branch_to_checkout="$branch_prefix$branch_to_checkout"
 
 	if [ "$new_branch" = true ]; then
 		_log info "Switching current branch to new branch $branch_to_checkout"
@@ -216,17 +265,37 @@ gmerge() {
         _log err "Current directory is not a git repository"
 	fi
 
+	branch_prefix=""
+	should_choose_branch=false
 	let "OPTIND = 1";
-	while getopts "l" opcao
+	while getopts "lfrh" opcao
 	do
 		case "$opcao" in
-			"l") 
-				if ! _choose_branch branch_to_merge ; then
-					return $?
+			"l")
+				should_choose_branch=true
+				# Optional option argument (without ':' in getopts)
+				if [[ ${@:$OPTIND} =~ ^[[:alpha:]]+$ ]]; then
+					branch_prefix=${@:$OPTIND}
+					OPTIND=$((OPTIND+1))
 				fi
+				;;
+			"f")
+				branch_prefix="feature/"
+				;;
+			"r")
+				branch_prefix="release/"
+				;;
+			"h")
+				branch_prefix="hotfix/"
 				;;
 		esac
 	done
+
+	if [ "$should_choose_branch" = true ]; then
+		if ! _choose_branch branch_to_merge "$branch_prefix"; then
+			return $?
+		fi
+	fi
 
 	if [[ -z "$branch_to_merge" && $# -eq 1 && "$1" != "-l" ]]; then
 		branch_to_merge="$1"

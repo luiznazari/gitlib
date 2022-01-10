@@ -314,6 +314,8 @@ _format_tasks_message() {
 	expr "$(_trim $tasks_message)"
 }
 
+# args:
+#   $1 - [Optional] filter string
 # Returns a string containing known branches separated by space.
 _get_git_branches_str() {
 	LINE_BREAK='
@@ -326,17 +328,28 @@ _get_git_branches_str() {
 	# Join remote and local branches
 	branches="$remote_branches$LINE_BREAK$local_branches"
 
-	# Sort and remove duplicates
-	branches=$(printf '%s\n' "$branches" | sort -u)
+	# Remove duplicates, filter and sort
+	if [ -n "$1" ]; then
+		branches=$(printf '%s\n' "$branches" | grep "$1" | sort -u)
+	else
+		branches=$(printf '%s\n' "$branches" | sort -u)
+	fi
 
 	# Replaces all line breaks by space, thus, resulting in an string with branches separated by space.
 	expr "$branches" | tr '\n' ' '
 }
 
-# $1 = variable to write branch name to
+# $1 - variable to write branch name to
+# $2 - filter
 _choose_branch() {
 	cancel_option="--CANCEL--"
-	branches_str="$(_get_git_branches_str) $cancel_option"
+	branches_str="$(_get_git_branches_str "$2") $cancel_option"
+
+	_log debug "-$branches_str-"
+	if [ "$branches_str" == "  --CANCEL--" ]; then
+		_log warn "No branch found"
+		return 1;
+	fi
 
 	_select_option $branches_str
 	selected_option=$?
