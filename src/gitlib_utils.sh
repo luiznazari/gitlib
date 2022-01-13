@@ -70,7 +70,8 @@ _check_if_path_is_repository_root_and_confirm() {
 		if [ -n "$1" ]; then
 			messageComplement=", $1"
 		fi
-		if _yes_no "You are not on repository root directory$messageComplement. Confirm operation?"; then
+
+		if _yes_no "You are not on REPOSITORY ROOT directory$messageComplement. Confirm operation?"; then
 			return 0
 		else 
 			return 1
@@ -199,7 +200,7 @@ _do_commit() {
 			elif [ -z "$task_ids" ]; then
 			
 				continue_msg="Continue? (y/n/comma separated task numbers)"
-				echo "The task NUMBER(S) could not be determined. $continue_msg"
+				echo "The TASK NUMBER(S) could not be determined. $continue_msg"
 				while true; do
 					read -p "> " response
 
@@ -345,7 +346,6 @@ _choose_branch() {
 	cancel_option="--CANCEL--"
 	branches_str="$(_get_git_branches_str "$2") $cancel_option"
 
-	_log debug "-$branches_str-"
 	if [ "$branches_str" == "  --CANCEL--" ]; then
 		_log warn "No branch found"
 		return 1;

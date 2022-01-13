@@ -87,7 +87,7 @@ gpull() {
 			"l")
 				should_choose_branch=true
 				# Optional option argument (without ':' in getopts)
-				if [[ ${@:$OPTIND} =~ ^[[:alpha:]]+$ ]]; then
+				if [[ ${@:$OPTIND} =~ ^[[:alnum:]]+$ ]]; then
 					branch_prefix=${@:$OPTIND}
 					OPTIND=$((OPTIND+1))
 				fi
@@ -150,7 +150,7 @@ gpush() {
 			"l")
 				should_choose_branch=true
 				# Optional option argument (without ':' in getopts)
-				if [[ ${@:$OPTIND} =~ ^[[:alpha:]]+$ ]]; then
+				if [[ ${@:$OPTIND} =~ ^[[:alnum:]]+$ ]]; then
 					branch_prefix=${@:$OPTIND}
 					OPTIND=$((OPTIND+1))
 				fi
@@ -203,7 +203,7 @@ gout() {
 			"l")
 				should_choose_branch=true
 				# Optional option argument (without ':' in getopts)
-				if [[ ${@:$OPTIND} =~ ^[[:alpha:]]+$ ]]; then
+				if [[ ${@:$OPTIND} =~ ^[[:alnum:]]+$ ]]; then
 					branch_prefix=${@:$OPTIND}
 					OPTIND=$((OPTIND+1))
 				fi
@@ -227,6 +227,7 @@ gout() {
 		if ! _choose_branch branch_to_checkout "$branch_prefix"; then
 			return $?
 		fi
+		branch_prefix=""
 	fi
 
 	if [ -z "$branch_to_checkout" ]; then
@@ -274,7 +275,7 @@ gmerge() {
 			"l")
 				should_choose_branch=true
 				# Optional option argument (without ':' in getopts)
-				if [[ ${@:$OPTIND} =~ ^[[:alpha:]]+$ ]]; then
+				if [[ ${@:$OPTIND} =~ ^[[:alnum:]]+$ ]]; then
 					branch_prefix=${@:$OPTIND}
 					OPTIND=$((OPTIND+1))
 				fi
