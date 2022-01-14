@@ -156,7 +156,7 @@ _do_commit() {
 				task_ids=""
 
 			elif [[ $branch =~ ^b_([[:alnum:]]+)_([[:digit:]]+)$ || $branch =~ ^[[:alpha:]]+\/([[:alnum:]]+)-([[:digit:]]+)$ ]]; then
-				commit_task_prefix="${BASH_REMATCH[1]^^}" ## ^^ = to uppercase
+				commit_task_prefix="${BASH_REMATCH[1]}"
 				task_ids="${BASH_REMATCH[2]}"
 
 			elif [[ $branch =~ ^[[:alpha:]]+\/([A-Za-z0-9_-]+)$ ]]; then
@@ -308,7 +308,7 @@ _format_tasks_message() {
 
 		IFS=',' read -ra task_id_array <<< "$task_ids"
 		for task_id in "${task_id_array[@]}"; do
-			tasks_message+="#$task_prefix$(_trim $task_id) "
+			tasks_message+="$task_prefix$(_trim $task_id) "
 		done
 	fi
 

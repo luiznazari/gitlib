@@ -403,14 +403,11 @@ greset() {
 		read -p "> " response
 
 		if [[ $response =~ ^[YySs]$ ]]; then
-			_log debug "git checkout ."
-			_log debug "git reset ."
-			_log debug "git reset --hard HEAD"
+			branch=$(_get_current_git_branch);
+			_log debug "git reset --hard origin/$branch"
 
 			if [ "$GL_DEBUG_MODE_ENABLED" = false ]; then
-				git checkout . 
-				git reset .
-				git reset --hard HEAD
+				git reset --hard "origin/$branch"
 			fi
 			break
 
