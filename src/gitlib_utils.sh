@@ -148,17 +148,32 @@ _do_commit() {
 			branch=$(_get_current_git_branch)
 			task_ids=""
 
+			# branch: b_task_123
+			# commit: [123] <message>
 			if [[ $branch == *b_task_* ]]; then
 				task_ids="${branch#*b_task_}"
 
+			# branch: release/some-description
+			# commit: <message>
 			elif [[ $branch =~ ^release\/(.*) ]]; then
 				commit_task_prefix=""
 				task_ids=""
 
+			# branch: b_abc_123
+			# branch: anything/abc-123
+			# commit: [abc-123] <message>
 			elif [[ $branch =~ ^b_([[:alnum:]]+)_([[:digit:]]+)$ || $branch =~ ^[[:alpha:]]+\/([[:alnum:]]+)-([[:digit:]]+)$ ]]; then
 				commit_task_prefix="${BASH_REMATCH[1]}"
 				task_ids="${BASH_REMATCH[2]}"
 
+			# branch: anything/abc-123-some-description
+			# commit: [abc-123] <message>
+			elif [[ $branch =~ ^[[:alpha:]]+\/([[:alpha:]]+)-([[:alnum:]]+)-.*$ ]]; then
+				commit_task_prefix="${BASH_REMATCH[1]}"
+				task_ids="${BASH_REMATCH[2]}"
+
+			# branch: anything/some-description
+			# commit: [some-description] <message>
 			elif [[ $branch =~ ^[[:alpha:]]+\/([A-Za-z0-9_-]+)$ ]]; then
 				task_ids="${BASH_REMATCH[1]}"
 
