@@ -5,7 +5,7 @@
 # - GITLIB
 # - Library of utility functions and standardizing for daily/commonly used
 # - GIT commands
-# - Version: 1.2-SENIOR
+# - Version: 1.3
 # - 
 # - Author: Luiz Felipe Nazari
 # -         luiz.nazari.42@gmail.com
@@ -40,12 +40,25 @@ _log() {
     esac
     
     if [ $GL_LOGLEVEL -ge $level ]; then
-        echo -e "[$str] $logColor$@$GL_NO_COLOR"
+        printf '[%s] %b%s%b\n' "$str" "$logColor" "$*" "$GL_NO_COLOR"
     fi
 }
 
 _getopts() {
     echo "$@" | sed -E 's/(^|[[:space:]])[[:alpha:]]+//g'
+}
+
+_gl_read_line() {
+    if ! _gl_is_interactive; then
+        _log err "Interactive input required but stdin is not a terminal."
+        return 1
+    fi
+    printf '%s' "$1"
+    IFS= read -r GL_READ_RESULT
+}
+
+_gl_is_interactive() {
+    [ -t 0 ] && [ -t 1 ]
 }
 
 # Returns the current branch name. e.g.: master
@@ -83,7 +96,12 @@ _check_if_path_is_repository_root() {
 	repositoryRootDir="$(git rev-parse --show-toplevel)"
 
 	# Fix for GitForWindows compatibility, transforms "C:/path/repo" into "/c/path/repo"
-	repositoryRootDir="$(echo "$repositoryRootDir" | sed  -E "s/^([A-Z]):\//\/\L\1\//")"
+	case "$repositoryRootDir" in
+		[A-Z]:/*)
+			drive_letter="$(printf '%s' "${repositoryRootDir%%:*}" | tr 'A-Z' 'a-z')"
+			repositoryRootDir="/$drive_letter/${repositoryRootDir#?:/}"
+			;;
+	esac
 
 	[[  "$repositoryRootDir" != "$PWD" ]] && return 0 || return 1
 }
@@ -96,7 +114,7 @@ _trim() {
     text="${text#"${text%%[![:space:]]*}"}"
     # remove trailing whitespace characters
     text="${text%"${text##*[![:space:]]}"}"   
-    echo -n "$text"
+    printf '%s' "$text"
 }
 
 # if _yes_no "message"; then
@@ -107,19 +125,20 @@ _yes_no() {
     # read -p "Mensagem. $input_message" input
     retval=0
     
-	echo "$1 (y/n)"
+	printf '%s\n' "$1 (y/n)"
     while true; do
-        read -p "> " response
+		_gl_read_line "> " || return 1
+		response="$GL_READ_RESULT"
         case $response in
             [SsYy] ) retval=0; break;;
             [Nn] ) retval=1; break;;
-            *) echo ""
+            *) printf '\n'
         esac
 
-		echo "Confirm? (y/n)"
+		printf '%s\n' "Confirm? (y/n)"
     done
     
-    echo "" # quebra de linha para próximos comandos
+    printf '\n' # quebra de linha para próximos comandos
     return "$retval"
 }
 
@@ -144,40 +163,73 @@ _do_commit() {
 	_format_commit_message() {
 		commit_refs=""
 
+		_extract_task_data_from_branch() {
+			branch_name="$1"
+			extracted_prefix=""
+			extracted_ids=""
+			path_part=""
+
+			case "$branch_name" in
+				*b_task_*)
+					extracted_ids="${branch_name#*b_task_}"
+					;;
+				release/*)
+					# release branches do not force refs
+					;;
+				b_*_*)
+					path_part="${branch_name#b_}"
+					extracted_prefix="${path_part%%_*}"
+					extracted_ids="${path_part#*_}"
+					case "$extracted_prefix:$extracted_ids" in
+						*[![:alnum:]]*:*|*:*[![:digit:]]*)
+							extracted_prefix=""
+							extracted_ids=""
+							;;
+					esac
+					;;
+				*/*-*)
+					path_part="${branch_name#*/}"
+					extracted_prefix="${path_part%%-*}"
+					rest_part="${path_part#*-}"
+					extracted_ids="${rest_part%%-*}"
+
+					case "$extracted_prefix" in
+						""|*[![:alpha:]]) extracted_prefix="" ;;
+					esac
+
+					case "$extracted_ids" in
+						""|*[![:alnum:]]) extracted_ids="" ;;
+					esac
+
+					if [ -z "$extracted_prefix" ] || [ -z "$extracted_ids" ]; then
+						extracted_prefix=""
+						extracted_ids=""
+					fi
+					;;
+				*/*)
+					path_part="${branch_name#*/}"
+					case "$path_part" in
+						*[!A-Za-z0-9_-]*|"")
+							;;
+						*)
+							extracted_ids="$path_part"
+							;;
+					esac
+					;;
+			esac
+
+			printf '%s|%s\n' "$extracted_prefix" "$extracted_ids"
+		}
+
 		_request_task_id() {
 			branch=$(_get_current_git_branch)
 			task_ids=""
 
-			# branch: b_task_123
-			# commit: [123] <message>
-			if [[ $branch == *b_task_* ]]; then
-				task_ids="${branch#*b_task_}"
-
-			# branch: release/some-description
-			# commit: <message>
-			elif [[ $branch =~ ^release\/(.*) ]]; then
-				commit_task_prefix=""
-				task_ids=""
-
-			# branch: b_abc_123
-			# branch: anything/abc-123
-			# commit: [abc-123] <message>
-			elif [[ $branch =~ ^b_([[:alnum:]]+)_([[:digit:]]+)$ || $branch =~ ^[[:alpha:]]+\/([[:alnum:]]+)-([[:digit:]]+)$ ]]; then
-				commit_task_prefix="${BASH_REMATCH[1]}"
-				task_ids="${BASH_REMATCH[2]}"
-
-			# branch: anything/abc-123-some-description
-			# commit: [abc-123] <message>
-			elif [[ $branch =~ ^[[:alpha:]]+\/([[:alpha:]]+)-([[:alnum:]]+)-.*$ ]]; then
-				commit_task_prefix="${BASH_REMATCH[1]}"
-				task_ids="${BASH_REMATCH[2]}"
-
-			# branch: anything/some-description
-			# commit: [some-description] <message>
-			elif [[ $branch =~ ^[[:alpha:]]+\/([A-Za-z0-9_-]+)$ ]]; then
-				task_ids="${BASH_REMATCH[1]}"
-
+			extracted_branch_data="$(_extract_task_data_from_branch "$branch")"
+			if [ -z "$commit_task_prefix" ]; then
+				commit_task_prefix="${extracted_branch_data%%|*}"
 			fi
+			task_ids="${extracted_branch_data#*|}"
 
 			# -- Prompt commit_task_prefix --
 			if [ "$yesToAll" = true ]; then
@@ -186,9 +238,10 @@ _do_commit() {
 			elif [ -z "$commit_task_prefix" ]; then
 			
 				continue_msg="Continue? (y/n/task prefix)"
-				echo "The TASK PREFIX could not be determined. $continue_msg"
+				printf '%s\n' "The TASK PREFIX could not be determined. $continue_msg"
 				while true; do
-					read -p "> " response
+					_gl_read_line "> " || return 1
+					response="$GL_READ_RESULT"
 
 					if [[ $response =~ ^[YySs]$ ]]; then
 						commit_task_prefix=""
@@ -203,7 +256,7 @@ _do_commit() {
 						break
 					fi
 
-					echo $continue_msg
+					printf '%s\n' "$continue_msg"
 				done
 				
 			fi
@@ -215,9 +268,10 @@ _do_commit() {
 			elif [ -z "$task_ids" ]; then
 			
 				continue_msg="Continue? (y/n/comma separated task numbers)"
-				echo "The TASK NUMBER(S) could not be determined. $continue_msg"
+				printf '%s\n' "The TASK NUMBER(S) could not be determined. $continue_msg"
 				while true; do
-					read -p "> " response
+					_gl_read_line "> " || return 1
+					response="$GL_READ_RESULT"
 
 					if [[ $response =~ ^[YySs]$ ]]; then
 						task_ids=""
@@ -232,7 +286,7 @@ _do_commit() {
 						break
 					fi
 
-					echo $continue_msg
+					printf '%s\n' "$continue_msg"
 				done
 				
 			fi
@@ -244,10 +298,11 @@ _do_commit() {
 		_request_commit_hash() {
 			hash=""
 			continue_msg="Continue? (n/commit hash)"
-			echo "Insert the commit hash (SHA1 ID). $continue_msg"
+			printf '%s\n' "Insert the commit hash (SHA1 ID). $continue_msg"
 
 			while true; do
-				read -p "> " response
+				_gl_read_line "> " || return 1
+				response="$GL_READ_RESULT"
 
 				if [[ -z $response ]]; then
 					continue
@@ -261,7 +316,7 @@ _do_commit() {
 					break
 				fi
 
-				echo $continue_msg
+				printf '%s\n' "$continue_msg"
 			done
 
 			commit_refs="$hash"
@@ -321,13 +376,16 @@ _format_tasks_message() {
 			task_prefix="$1-"
 		fi
 
-		IFS=',' read -ra task_id_array <<< "$task_ids"
-		for task_id in "${task_id_array[@]}"; do
+		old_ifs="$IFS"
+		IFS=','
+		set -- $task_ids
+		IFS="$old_ifs"
+		for task_id in "$@"; do
 			tasks_message+="$task_prefix$(_trim $task_id) "
 		done
 	fi
 
-	expr "$(_trim $tasks_message)"
+	printf '%s\n' "$(_trim "$tasks_message")"
 }
 
 # args:
@@ -352,7 +410,7 @@ _get_git_branches_str() {
 	fi
 
 	# Replaces all line breaks by space, thus, resulting in an string with branches separated by space.
-	expr "$branches" | tr '\n' ' '
+	printf '%s' "$branches" | tr '\n' ' '
 }
 
 # $1 - variable to write branch name to
@@ -370,14 +428,18 @@ _choose_branch() {
 	selected_option=$?
 
 	branches_array=($branches_str)
-	selected_branch="${branches_array[selected_option]}"
+	if [ -n "$ZSH_VERSION" ]; then
+		selected_branch="${branches_array[$((selected_option + 1))]}"
+	else
+		selected_branch="${branches_array[$selected_option]}"
+	fi
 	unset branches_array
 
 	if [ "$selected_branch" == "$cancel_option" ]; then
 		return 1;
 	elif [ -n "$1" ]; then
-		read -ra $1 <<< "$selected_branch"
+		eval "$1=\"\$selected_branch\""
 	else
-		expr "$selected_branch"
+		printf '%s\n' "$selected_branch"
 	fi
 }

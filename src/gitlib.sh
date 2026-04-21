@@ -5,7 +5,7 @@
 # - GITLIB
 # - Library of utility functions and standardizing for daily/commonly used
 # - GIT commands
-# - Version: 1.2
+# - Version: 1.3
 # - 
 # - Author: Luiz Felipe Nazari
 # -         luiz.nazari.42@gmail.com
@@ -27,7 +27,7 @@ GL_LOGLEVEL=2 #INFO
 
 gcommit() {
 	branch=$(_get_current_git_branch);
-	commit_message="${@: -1}" # get last argument only
+	commit_message=""
 	commit_task_prefix=""
 	yesToAll=false
 	
@@ -56,6 +56,13 @@ gcommit() {
 				":") _log err "Arguments not specified for option \"$OPTARG\"" ;;
 			esac
 		done
+		shift $((OPTIND - 1))
+
+		if [ -z "$commit_message" ] && [ $# -gt 0 ]; then
+			for _arg in "$@"; do
+				commit_message="$_arg"
+			done
+		fi
 
 		if [ -z "$commit_message" ]; then
 			_log err "Please, insert a message to confirm the commit"
@@ -86,9 +93,9 @@ gpull() {
 		case "$opcao" in
 			"l")
 				should_choose_branch=true
-				# Optional option argument (without ':' in getopts)
-				if [[ ${@:$OPTIND} =~ ^[[:alnum:]]+$ ]]; then
-					branch_prefix=${@:$OPTIND}
+				next_arg="$(eval "printf '%s' \"\${$OPTIND}\"")"
+				if [[ "$next_arg" =~ ^[[:alnum:]_/-]+$ ]]; then
+					branch_prefix="$next_arg"
 					OPTIND=$((OPTIND+1))
 				fi
 				;;
@@ -149,9 +156,9 @@ gpush() {
 		case "$opcao" in
 			"l")
 				should_choose_branch=true
-				# Optional option argument (without ':' in getopts)
-				if [[ ${@:$OPTIND} =~ ^[[:alnum:]]+$ ]]; then
-					branch_prefix=${@:$OPTIND}
+				next_arg="$(eval "printf '%s' \"\${$OPTIND}\"")"
+				if [[ "$next_arg" =~ ^[[:alnum:]_/-]+$ ]]; then
+					branch_prefix="$next_arg"
 					OPTIND=$((OPTIND+1))
 				fi
 				;;
@@ -202,9 +209,9 @@ gout() {
 		case "$opcao" in
 			"l")
 				should_choose_branch=true
-				# Optional option argument (without ':' in getopts)
-				if [[ ${@:$OPTIND} =~ ^[[:alnum:]]+$ ]]; then
-					branch_prefix=${@:$OPTIND}
+				next_arg="$(eval "printf '%s' \"\${$OPTIND}\"")"
+				if [[ "$next_arg" =~ ^[[:alnum:]_/-]+$ ]]; then
+					branch_prefix="$next_arg"
 					OPTIND=$((OPTIND+1))
 				fi
 				;;
@@ -235,7 +242,9 @@ gout() {
 			_log err "Branch name not specified"
 			return 1;
 		else 
-			branch_to_checkout="${@: -1}" # get last argument only
+			for _arg in "$@"; do
+				branch_to_checkout="$_arg"
+			done
 		fi
 	fi
 
@@ -274,9 +283,9 @@ gmerge() {
 		case "$opcao" in
 			"l")
 				should_choose_branch=true
-				# Optional option argument (without ':' in getopts)
-				if [[ ${@:$OPTIND} =~ ^[[:alnum:]]+$ ]]; then
-					branch_prefix=${@:$OPTIND}
+				next_arg="$(eval "printf '%s' \"\${$OPTIND}\"")"
+				if [[ "$next_arg" =~ ^[[:alnum:]_/-]+$ ]]; then
+					branch_prefix="$next_arg"
 					OPTIND=$((OPTIND+1))
 				fi
 				;;
@@ -361,7 +370,7 @@ gbranch() {
 		case "$opcao" in
 			"d" )
 				delete_local=true
-				echo -e "Which branch do you want do delete ${GL_BOLD}LOCALLY${GL_NO_COLOR}?"
+				printf 'Which branch do you want do delete %bLOCALLY%b?\n' "$GL_BOLD" "$GL_NO_COLOR"
 				if _choose_branch selected_branch ; then
 					_log debug "git branch -d $selected_branch"
 					if [ "$GL_DEBUG_MODE_ENABLED" = false ]; then
@@ -371,7 +380,7 @@ gbranch() {
 				;;
 			"D" )
 				delete_remote=true
-				echo -e "Which branch do you want do delete ${GL_BOLD}REMOTELY${GL_NO_COLOR}?"
+				printf 'Which branch do you want do delete %bREMOTELY%b?\n' "$GL_BOLD" "$GL_NO_COLOR"
 				if _choose_branch selected_branch ; then
 					if _yes_no "Are you sure you want to delete remote branch "$selected_branch"? This action cannot be undone."; then
 						_log debug "git push origin --delete $selected_branch"
@@ -397,10 +406,11 @@ gbranch() {
 # Undo all local commits and changes (stagged and unstagged). 
 greset() {
 	continue_msg="(y/n)"
-	echo "Are you sure you want to discard all local stagged and unstagged changes? This action cannot be undone. $continue_msg"
+	printf '%s\n' "Are you sure you want to discard all local stagged and unstagged changes? This action cannot be undone. $continue_msg"
 
 	while true; do
-		read -p "> " response
+		_gl_read_line "> " || return 1
+		response="$GL_READ_RESULT"
 
 		if [[ $response =~ ^[YySs]$ ]]; then
 			branch=$(_get_current_git_branch);
@@ -416,7 +426,7 @@ greset() {
 			return "1"
 		fi
 
-		echo $continue_msg
+		printf '%s\n' "$continue_msg"
 	done
 }
 

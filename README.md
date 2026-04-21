@@ -14,11 +14,24 @@ GitLib is meant for anyone that uses Git from the terminal, making the daily wor
 
    `source <path_to_gitlib>/setup.sh`
 
+   If you share shell config through `~/.common.sh`, source it there and then source `~/.common.sh` from both `~/.bash_profile` and `~/.zshrc`.
+
 3. You can also add [configuration commands](#configuration)
 
 Further configurations are not necessary.
 
 ## Usage
+
+## Shell compatibility
+
+GitLib supports macOS with:
+- Bash
+- Zsh
+
+Compatibility notes:
+- Interactive commands (`gcommit`, branch chooser flows, `greset`) require a terminal TTY.
+- When running in non-interactive contexts (e.g. CI), prompt-based commands will fail fast with an error message.
+- Branch prefixes used with `-l` support common characters such as `/`, `_` and `-`.
 
 ### `gcommit [-p] [-s] <message>`
 

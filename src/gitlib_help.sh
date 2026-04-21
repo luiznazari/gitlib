@@ -5,7 +5,7 @@
 # - GITLIB
 # - Library of utility functions and standardizing for daily/commonly used
 # - GIT commands
-# - Version: 1.0
+# - Version: 1.3
 # - 
 # - Author: Luiz Felipe Nazari
 # -        luiz.nazari.42@gmail.com

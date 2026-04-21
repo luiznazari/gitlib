@@ -5,7 +5,7 @@
 # - GITLIB
 # - Library of utility functions and standardizing for daily/commonly used
 # - GIT commands
-# - Version: 1.2
+# - Version: 1.3
 # - 
 # - Author: Luiz Felipe Nazari
 # -         luiz.nazari.42@gmail.com
@@ -34,11 +34,11 @@ done
 GL_SOURCE_DIR="$( dirname "$GL_SOURCE" )/src"
 
 if [ -d "$GL_SOURCE_DIR" ]; then
-	source $GL_SOURCE_DIR/vendors/select_options.sh
-	source $GL_SOURCE_DIR/gitlib_utils.sh
-	source $GL_SOURCE_DIR/gitlib.sh
+	source "$GL_SOURCE_DIR/vendors/select_options.sh"
+	source "$GL_SOURCE_DIR/gitlib_utils.sh"
+	source "$GL_SOURCE_DIR/gitlib.sh"
 else
-	echo "[ERROR] GitLib could not be loaded. Unable to locate source directory: \"$GL_SOURCE_DIR\""
+	printf '%s\n' "[ERROR] GitLib could not be loaded. Unable to locate source directory: \"$GL_SOURCE_DIR\""
 fi
 
 # Further configurations are not necessary
